@@ -19,8 +19,8 @@
 #
 ##############################################################################
 
-from odoo import models, fields, api, osv
-from odoo.tools.translate import _
+from openerp import models, fields, api, osv
+from openerp import _
 
 import pdb
 import logging
@@ -29,7 +29,8 @@ _logger = logging.getLogger(__name__)
 import requests
 import base64
 import mimetypes
-from urllib.request import urlopen
+#from urllib.request import urlopen
+from urllib2 import urlopen
 
 from datetime import datetime
 
@@ -46,6 +47,7 @@ from .versions import *
 class product_template(models.Model):
     _inherit = "product.template"
 
+    product_image_ids = fields.One2many('product.image', 'product_tmpl_id', string='Images')
 
     def product_template_post(self):
         product_obj = self.env['product.template']
@@ -359,8 +361,15 @@ class product_template(models.Model):
 
 product_template()
 
-class product_image(models.Model):
-    _inherit = "product.image"
+# Implemento imagen como está en website_sale de la v12
+class ProductImage(models.Model):
+    _name = 'product.image'
+    _description = 'Product Image'
+
+    name = fields.Char('Name')
+    image = fields.Binary('Image', attachment=True)
+    product_tmpl_id = fields.Many2one('product.template', 'Related Product', copy=True)
+    
 
     meli_imagen_id = fields.Char(string='Imagen Id',index=True)
     meli_imagen_link = fields.Char(string='Imagen Link')
@@ -369,7 +378,7 @@ class product_image(models.Model):
     meli_imagen_bytes = fields.Integer(string='Size bytes')
     meli_pub = fields.Boolean(string='Publicar en ML',index=True)
 
-product_image()
+ProductImage()
 
 class product_product(models.Model):
 

@@ -26,9 +26,9 @@ _logger = logging.getLogger(__name__)
 import requests
 from datetime import datetime
 
-from odoo import fields, osv, models, api
-from odoo.tools.translate import _
-from odoo import tools
+from openerp import fields, osv, models, api
+from openerp import _
+from openerp import tools
 
 from . import versions
 from .versions import *

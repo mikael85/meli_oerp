@@ -1,6 +1,6 @@
 
-from odoo import models, fields, api
-from odoo.tools.translate import _
+from openerp import models, fields, api
+from openerp import _
 import math
 
 class res_currency_rate(models.Model):

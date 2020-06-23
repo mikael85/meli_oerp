@@ -2,19 +2,19 @@
 
 import base64
 
-from odoo import http, api
+from openerp import http, api
 
 from ..melisdk.meli import Meli
 
-from odoo import fields, osv
-from odoo.http import Controller, Response, request, route
+from openerp import fields, osv
+from openerp.http import Controller, Response, request, route
 
 import pdb
 import logging
 _logger = logging.getLogger(__name__)
 
 
-from odoo.addons.web.controllers.main import content_disposition
+from openerp.addons.web.controllers.main import content_disposition
 
 class MercadoLibre(http.Controller):
     @http.route('/meli/', auth='public')
@@ -97,8 +97,8 @@ class Download(http.Controller):
 
     2) Define the method for downloading the file
 
-    from odoo import api, models
-    from odoo.tools ustr
+    from openerp import api, models
+    from openerp.tools ustr
 
 
     class StockMove(models.Model):

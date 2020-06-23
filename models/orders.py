@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from odoo import fields, osv, models, api
+from openerp import fields, osv, models, api
 import logging
 from .meli_oerp_config import *
 
@@ -35,7 +35,8 @@ from . import product
 from . import shipment
 from dateutil.parser import *
 from datetime import *
-from urllib.request import urlopen
+#from urllib.request import urlopen
+from urllib2 import urlopen
 import requests
 try:
     from urllib import urlencode
@@ -125,7 +126,8 @@ class mercadolibre_orders(models.Model):
     _name = "mercadolibre.orders"
     _description = "Pedidos en MercadoLibre"
 
-    _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
+    # _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread']
 
     def street(self, Receiver ):
         full_street = 'no street'

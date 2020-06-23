@@ -147,7 +147,7 @@
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers"/>
-                    <field name="activity_ids" widget="mail_activity"/>
+                    <!-- <field name="activity_ids" widget="mail_activity"/> No existe el mixin --> 
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
               </form>
@@ -274,7 +274,7 @@
         </record>
 -->
 
-        <menuitem id="menu_meli" name="MercadoLibre" parent="sale.sale_menu_root" sequence="9"/>
+        <menuitem id="menu_meli" name="MercadoLibre" parent="base.menu_base_partner" sequence="9"/>
 
         <menuitem id="menu_meli_orders"
             action="action_meli_orders_tree"

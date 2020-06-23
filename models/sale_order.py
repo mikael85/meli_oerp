@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, osv, models, api
-import odoo.addons.decimal_precision as dp
+from openerp import fields, osv, models, api
+import openerp.addons.decimal_precision as dp
 
 class SaleOrder(models.Model):
     

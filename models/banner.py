@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from odoo import fields, osv, models, api
+from openerp import fields, osv, models, api
 
 class MercadolibreBanner(models.Model):
     _name = "mercadolibre.banner"

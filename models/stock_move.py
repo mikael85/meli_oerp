@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, _
-from odoo.addons import decimal_precision as dp
-from odoo.exceptions import UserError
-from odoo.tools import float_utils
+from openerp import api, fields, models, _
+from openerp.addons import decimal_precision as dp
+from openerp.exceptions import UserError
+from openerp.tools import float_utils
 import logging
 _logger = logging.getLogger(__name__)
 

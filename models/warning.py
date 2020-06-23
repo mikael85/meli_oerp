@@ -1,5 +1,5 @@
-from odoo import fields, osv, models
-from odoo.tools.translate import _
+from openerp import fields, osv, models
+from openerp import _
 import pdb
 #CHANGE WARNING_MODULE with your module name
 WARNING_MODULE = 'meli_oerp'

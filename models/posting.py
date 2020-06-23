@@ -19,8 +19,8 @@
 #
 ##############################################################################
 
-from odoo import fields, osv, models, api
-from odoo.tools.translate import _
+from openerp import fields, osv, models, api
+from openerp import _
 import logging
 
 from ..melisdk.meli import Meli

@@ -93,7 +93,7 @@
 			<field name="search_view_id" ref="meli_notifications_search_view" />
 		</record>
 
-		<menuitem id="menu_meli" name="MercadoLibre" parent="sale.sale_menu_root" sequence="9"/>
+		<menuitem id="menu_meli" name="MercadoLibre" parent="base.menu_base_partner" sequence="9"/>
 
 		<menuitem id="menu_meli_notifications"
 			action="action_meli_notifications_tree"

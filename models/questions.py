@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from odoo import fields, osv, models
+from openerp import fields, osv, models
 import logging
 from .meli_oerp_config import *
 

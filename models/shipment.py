@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-from odoo import fields, osv, models, api
+from openerp import fields, osv, models, api
 import logging
 from .meli_oerp_config import *
 
@@ -30,15 +30,16 @@ import json
 import logging
 _logger = logging.getLogger(__name__)
 
-from urllib.request import urlopen
+#from urllib.request import urlopen
+from urllib2 import urlopen
 import requests
 import base64
 import mimetypes
-from . import orders
-from . import product
-from . import product_post
-from . import posting
-from . import res_partner
+# from . import orders
+# from . import product
+# from . import product_post
+# from . import posting
+# from . import res_partner
 from pdf2image import convert_from_path, convert_from_bytes
 
 from dateutil.parser import *
@@ -161,7 +162,8 @@ class mercadolibre_shipment(models.Model):
 	_name = "mercadolibre.shipment"
 	_description = "Envio de MercadoLibre"
 
-	_inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
+	# _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
+	_inherit = ['mail.thread']
 
 	name = fields.Char(string='Name')
 	site_id = fields.Char('Site id')
