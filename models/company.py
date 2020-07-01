@@ -294,6 +294,7 @@ class res_company(models.Model):
 
 
 
+    @api.multi
     def	meli_logout(self):
         _logger.info('company.meli_logout() ')
         self.ensure_one()
@@ -316,6 +317,7 @@ class res_company(models.Model):
         }
 
 
+    @api.multi
     def meli_login(self):
         _logger.info('company.meli_login() ')
         self.ensure_one()
@@ -357,6 +359,7 @@ class res_company(models.Model):
         return {}
 
 
+    @api.multi
     def meli_query_orders(self):
         _logger.info('company.meli_query_orders() ')
         company = self.env.user.company_id
@@ -365,12 +368,14 @@ class res_company(models.Model):
         return {}
 
 
+    @api.multi
     def meli_query_products(self):
         _logger.info('company.meli_query_products() ')
         company = self.env.user.company_id
         self.product_meli_get_products()
         return {}
 
+    @api.multi
     def product_meli_get_products( self ):
         _logger.info('company.product_meli_get_products() ')
         company = self.env.user.company_id
@@ -525,17 +530,20 @@ class res_company(models.Model):
         return {}
 
 
+    @api.multi
     def meli_update_local_products(self):
         _logger.info('company.meli_update_local_products() ')
         self.product_meli_update_local_products()
         return {}
 
 
+    @api.multi
     def meli_update_remote_products(self):
         _logger.info('company.meli_update_remote_products() ')
         self.product_meli_update_remote_products()
         return {}
 
+    @api.multi
     def product_meli_update_local_products( self ):
         _logger.info('company.product_meli_update_local_products() ')
         company = self.env.user.company_id
@@ -574,6 +582,7 @@ class res_company(models.Model):
 
         return {}
 
+    @api.multi
     def product_meli_update_remote_products( self ):
         _logger.info('company.product_meli_update_remote_products() ')
         company = self.env.user.company_id
@@ -610,6 +619,7 @@ class res_company(models.Model):
 
         self.meli_send_report( ret_messages )
 
+    @api.multi
     def meli_send_report(self, report_messages ):
         company = self.env.user.company_id
         thread_obj = self.env['mail.thread']
@@ -634,6 +644,7 @@ class res_company(models.Model):
             thread_obj.message_post( **post_vars )
 
 
+    @api.multi
     def meli_import_categories(self, context=None ):
         company = self.env.user.company_id
         category_obj = self.env['mercadolibre.category']
@@ -641,7 +652,7 @@ class res_company(models.Model):
         result = category_obj.import_all_categories(category_root=CATEGORY_ROOT )
         return {}
 
-
+    @api.multi
     def meli_update_remote_stock(self):
         company = self.env.user.company_id
         if (company.mercadolibre_cron_post_update_stock):
@@ -673,6 +684,7 @@ class res_company(models.Model):
         return {}
 
 
+    @api.multi
     def meli_update_remote_price(self):
         if (self.mercadolibre_cron_post_update_price):
             product_ids = self.env['product.product'].search([('meli_pub','=',True),('meli_id','!=',False)])
@@ -688,6 +700,7 @@ class res_company(models.Model):
                         _logger.info(e, exc_info=True)
 
 
+    @api.multi
     def meli_notifications(self):
         #_logger.info("meli_notifications")
         notifications = self.env['mercadolibre.notification']

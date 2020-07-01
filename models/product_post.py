@@ -19,8 +19,7 @@
 #
 ##############################################################################
 
-from openerp import fields, osv, models, _
-from openerp import _
+from openerp import fields, osv, models, api, _
 import pdb
 import logging
 _logger = logging.getLogger(__name__)
@@ -41,8 +40,8 @@ class product_template_post(models.TransientModel):
     _description = "Wizard de Product Template Posting en MercadoLibre"
 
     force_meli_pub = fields.Boolean(string="Forzar publicación",help="Forzar publicación de todos los seleccionados",default=False)
-    type = fields.Selection([('post','Alta'),('put','Editado'),('delete','Borrado')], string='Tipo de operación' );
-    posting_date = fields.Date('Fecha del posting');
+    type = fields.Selection([('post','Alta'),('put','Editado'),('delete','Borrado')], string='Tipo de operación' )
+    posting_date = fields.Date('Fecha del posting')
 	    #'company_id': fields.many2one('res.company',string='Company'),
 	    #'mercadolibre_state': fields.related( 'res.company', 'mercadolibre_state', string="State" )
 
@@ -50,6 +49,7 @@ class product_template_post(models.TransientModel):
     def pretty_json( self, data ):
         return json.dumps( data, sort_keys=False, indent=4 )
 
+    @api.multi
     def product_template_post(self, context=None):
 
         context = context or self.env.context
@@ -111,6 +111,7 @@ class product_template_update(models.TransientModel):
     def pretty_json( self, data ):
         return json.dumps( data, sort_keys=False, indent=4 )
 
+    @api.multi
     def product_template_update(self, context=None):
         context = context or self.env.context
         company = self.env.user.company_id
@@ -168,6 +169,7 @@ class product_post(models.TransientModel):
     def pretty_json( self, data ):
         return json.dumps( data, sort_keys=False, indent=4 )
 
+    @api.multi
     def product_post(self, context=None):
         context = context or self.env.context
         company = self.env.user.company_id

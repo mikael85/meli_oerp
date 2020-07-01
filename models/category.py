@@ -36,7 +36,7 @@ class product_public_category(models.Model):
 
     _inherit="product.public.category"
 
-    mercadolibre_category = fields.Many2one( "mercadolibre.category", string="Mercado Libre Category")
+    mercadolibre_category = fields.Many2one("mercadolibre.category", string="Mercado Libre Category")
 
 product_public_category()
 
@@ -63,9 +63,7 @@ class mercadolibre_category_attribute(models.Model):
 mercadolibre_category_attribute()
 
 class product_attribute(models.Model):
-
     _inherit="product.attribute"
-
     mercadolibre_attribute_id = fields.Many2one( "mercadolibre.category.attribute", string="MercadoLibre Attribute")
 
 product_attribute()
@@ -98,7 +96,7 @@ class mercadolibre_category(models.Model):
                 category.is_branch = ( "children_categories" in rjson_cat and len(rjson_cat["children_categories"])>0 )
                 category.meli_category_url = "https://api.mercadolibre.com/categories/"+str(category.meli_category_id)
                 category.meli_category_attributes = "https://api.mercadolibre.com/categories/"+str(category.meli_category_id)+"/attributes"
-                #_logger.info(rjson_cat["path_from_root"])
+                _logger.info(rjson_cat)
                 if (len(rjson_cat["path_from_root"])>=2):
                     fid = int(len(rjson_cat["path_from_root"])-2)
                     #_logger.info(fid)
@@ -218,6 +216,7 @@ class mercadolibre_category(models.Model):
 
         return {}
 
+    @api.multi
     def action_import_father_category( self ):
         for obj in self:
             if (obj.meli_father_category_id):
@@ -226,6 +225,7 @@ class mercadolibre_category(models.Model):
                 except:
                     _logger.error("No se pudo importar: "+ str(obj.meli_father_category_id))
 
+    @api.multi
     def import_category(self, category_id ):
         company = self.env.user.company_id
 
@@ -273,15 +273,16 @@ class mercadolibre_category(models.Model):
                     'name': fullname,
                     'meli_category_id': ''+str(category_id),
                     'is_branch': is_branch,
-                    'meli_father_category': father
+                    'meli_father_category': father and father.id or False,
                 }
-                ml_cat_id = category_obj.create((cat_fields))
+                ml_cat_id = category_obj.create(cat_fields)
                 if (ml_cat_id.id and is_branch==False):
                   ml_cat_id._get_attributes()
 
         return ml_cat_id
 
 
+    @api.multi
     def import_all_categories(self, category_root ):
         company = self.env.user.company_id
 

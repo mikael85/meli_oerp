@@ -44,6 +44,8 @@ if (not ('replace' in string.__dict__)):
 from . import versions
 from .versions import *
 
+prod_att_line = 'product.attribute.line'
+
 class product_template(models.Model):
     _inherit = "product.template"
 
@@ -217,6 +219,7 @@ class product_template(models.Model):
         return {}
 
 
+    @api.multi
     def action_meli_pause(self):
         for product in self:
             for variant in product.product_variant_ids:
@@ -225,6 +228,7 @@ class product_template(models.Model):
         return {}
 
 
+    @api.multi
     def action_meli_activate(self):
         for product in self:
             for variant in product.product_variant_ids:
@@ -233,6 +237,7 @@ class product_template(models.Model):
         return {}
 
 
+    @api.multi
     def action_meli_close(self):
         for product in self:
             for variant in product.product_variant_ids:
@@ -241,6 +246,7 @@ class product_template(models.Model):
         return {}
 
 
+    @api.multi
     def action_meli_delete(self):
         for product in self:
             for variant in product.product_variant_ids:
@@ -267,6 +273,7 @@ class product_template(models.Model):
         pricelist = self._get_pricelist_for_meli()
         return int(self.with_context(pricelist=pricelist.id).price)
 
+    @api.multi
     def action_category_predictor(self):
         self.ensure_one()
         warning_model = self.env['warning']
@@ -346,7 +353,7 @@ class product_template(models.Model):
 
     meli_pub_as_variant = fields.Boolean('Publicar variantes como variantes en ML',help='Publicar variantes como variantes de la misma publicación, no como publicaciones independientes.')
     meli_pub_variant_attributes = fields.Many2many(prod_att_line, string='Atributos a publicar en ML',help='Seleccionar los atributos a publicar')
-    meli_pub_principal_variant = fields.Many2one( 'product.product',string='Variante principal',help='Variante principal')
+    meli_pub_principal_variant = fields.Many2one('product.product',string='Variante principal',help='Variante principal')
 
     meli_model = fields.Char(string="Modelo [meli]",size=256)
     meli_brand = fields.Char(string="Marca [meli]",size=256)
@@ -360,25 +367,6 @@ class product_template(models.Model):
     meli_product_supplier = fields.Char(string="Proveedor del producto [meli]")
 
 product_template()
-
-# Implemento imagen como está en website_sale de la v12
-class ProductImage(models.Model):
-    _name = 'product.image'
-    _description = 'Product Image'
-
-    name = fields.Char('Name')
-    image = fields.Binary('Image', attachment=True)
-    product_tmpl_id = fields.Many2one('product.template', 'Related Product', copy=True)
-    
-
-    meli_imagen_id = fields.Char(string='Imagen Id',index=True)
-    meli_imagen_link = fields.Char(string='Imagen Link')
-    meli_imagen_size = fields.Char(string='Size')
-    meli_imagen_max_size = fields.Char(string='Max Size')
-    meli_imagen_bytes = fields.Integer(string='Size bytes')
-    meli_pub = fields.Boolean(string='Publicar en ML',index=True)
-
-ProductImage()
 
 class product_product(models.Model):
 
@@ -617,6 +605,7 @@ class product_product(models.Model):
             _logger.info("_meli_set_images Exception")
             _logger.info(e, exc_info=True)
 
+    @api.multi
     def product_meli_get_product( self ):
         company = self.env.user.company_id
         product_obj = self.env['product.product']
@@ -1231,6 +1220,7 @@ class product_product(models.Model):
                     _logger.info("SE no existe?")
 
 
+    @api.multi
     def product_meli_login(self ):
 
         company = self.env.user.company_id
@@ -1248,6 +1238,7 @@ class product_product(models.Model):
 	        "target": "new",
         }
 
+    @api.multi
     def product_meli_status_close( self ):
         company = self.env.user.company_id
         product_obj = self.env['product.product']
@@ -1264,6 +1255,7 @@ class product_product(models.Model):
 
         return {}
 
+    @api.multi
     def product_meli_status_pause( self ):
         company = self.env.user.company_id
         product_obj = self.env['product.product']
@@ -1280,6 +1272,7 @@ class product_product(models.Model):
 
         return {}
 
+    @api.multi
     def product_meli_status_active( self ):
         company = self.env.user.company_id
         product_obj = self.env['product.product']
@@ -1306,6 +1299,7 @@ class product_product(models.Model):
 
         return {}
 
+    @api.multi
     def product_meli_delete( self ):
 
         company = self.env.user.company_id
@@ -1335,6 +1329,7 @@ class product_product(models.Model):
 
         return {}
 
+    @api.multi
     def product_meli_upload_image( self ):
 
         company = self.env.user.company_id
@@ -1377,6 +1372,7 @@ class product_product(models.Model):
 
         return { 'status': 'success', 'message': 'uploaded and assigned' }
 
+    # @api.multi
     def product_meli_upload_multi_images( self  ):
 
         company = self.env.user.company_id
@@ -1686,6 +1682,7 @@ class product_product(models.Model):
             if (variant_principal):
                 product.meli_id = variant_principal.meli_id
 
+    @api.multi
     def product_post(self):
         res = []
         for product in self:
@@ -2228,6 +2225,7 @@ class product_product(models.Model):
 
         return {}
 
+    @api.multi
     def product_post_stock(self):
         company = self.env.user.company_id
         warningobj = self.env['warning']
@@ -2432,6 +2430,7 @@ class product_product(models.Model):
     def get_title_for_meli(self):
         return self.name
 
+    @api.multi
     def action_category_predictor(self):
         return self.product_tmpl_id.action_category_predictor()
 
