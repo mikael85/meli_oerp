@@ -92,6 +92,7 @@ class res_company(models.Model):
             return ML_sites[currency]["id"]
         return "MLA"
 
+    @api.model
     def get_meli_state( self ):
         # recoger el estado y devolver True o False (meli)
         #False if logged ok
@@ -178,6 +179,7 @@ class res_company(models.Model):
             comp.mercadolibre_state = ML_state
 
 
+    @api.model
     def cron_meli_process( self ):
 
         _logger.info('company cron_meli_process() ')
@@ -203,6 +205,7 @@ class res_company(models.Model):
             _logger.info("company.mercadolibre_cron_post_update_price")
             self.meli_update_remote_price()
 
+    @api.model
     def cron_meli_orders(self):
         _logger.info('company cron_meli_orders() ')
 
@@ -332,7 +335,8 @@ class res_company(models.Model):
         url_login_meli = meli.auth_url(redirect_URI=REDIRECT_URI)
         #url_login_oerp = "/meli_login"
 
-        _logger.info( "OK company.meli_login() called: url is ", url_login_meli )
+        # _logger.info( "OK company.meli_login() called: url is ", url_login_meli )
+        _logger.info( "OK company.meli_login() called: url is {}".format(url_login_meli))
 
         return {
             "type": "ir.actions.act_url",
