@@ -28,7 +28,7 @@ from ..melisdk.meli import Meli
 import logging
 _logger = logging.getLogger(__name__)
 
-from .meli_oerp_config import *
+# from .meli_oerp_config import *
 from dateutil.parser import *
 from datetime import *
 

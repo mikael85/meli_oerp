@@ -26,7 +26,7 @@ _logger = logging.getLogger(__name__)
 
 import pdb
 
-from .meli_oerp_config import *
+# from .meli_oerp_config import *
 from .warning import warning
 
 import requests
@@ -247,7 +247,7 @@ class res_company(models.Model):
     mercadolibre_cron_post_update_products = fields.Boolean(string='Publicar productos',help='Cron Post Products, Product Templates or Variants with Meli Publication field checked')
     mercadolibre_cron_post_update_stock = fields.Boolean(string='Publicar Stock',help='Cron Post Updated Stock')
     mercadolibre_cron_post_update_price = fields.Boolean(string='Publicar Precio',help='Cron Post Updated Price')
-    mercadolibre_create_website_categories = fields.Boolean(string='Crear categorías',help='Create Website eCommerce Categories from imported products ML categories')
+    # mercadolibre_create_website_categories = fields.Boolean(string='Crear categorías',help='Create Website eCommerce Categories from imported products ML categories')
     mercadolibre_pricelist = fields.Many2one( "product.pricelist", "Product Pricelist default", help="Select price list for ML product"
         "when published from Odoo to ML")
 

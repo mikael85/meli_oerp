@@ -23,7 +23,7 @@ from openerp import fields, osv, models, api
 import logging
 _logger = logging.getLogger(__name__)
 
-from .meli_oerp_config import *
+# # from .meli_oerp_config import *
 from .warning import warning
 
 import requests
@@ -32,13 +32,13 @@ import json
 
 from .versions import *
 
-class product_public_category(models.Model):
+# class product_public_category(models.Model):
 
-    _inherit="product.public.category"
+#     _inherit="product.public.category"
 
-    mercadolibre_category = fields.Many2one("mercadolibre.category", string="Mercado Libre Category")
+#     mercadolibre_category = fields.Many2one("mercadolibre.category", string="Mercado Libre Category")
 
-product_public_category()
+# product_public_category()
 
 
 class mercadolibre_category_attribute(models.Model):
@@ -93,6 +93,8 @@ class mercadolibre_category(models.Model):
                 _logger.info("_get_category_url:"+str(category.meli_category_id))
                 response_cat = meli.get("/categories/"+str(category.meli_category_id), {'access_token':meli.access_token})
                 rjson_cat = response_cat.json()
+                _logger.info('categories:')
+                _logger.info(rjson_cat)
                 category.is_branch = ( "children_categories" in rjson_cat and len(rjson_cat["children_categories"])>0 )
                 category.meli_category_url = "https://api.mercadolibre.com/categories/"+str(category.meli_category_id)
                 category.meli_category_attributes = "https://api.mercadolibre.com/categories/"+str(category.meli_category_id)+"/attributes"
@@ -301,7 +303,7 @@ class mercadolibre_category(models.Model):
         if (category_root):
             response = meli.get("/categories/"+str(category_root), {'access_token':meli.access_token} )
 
-            _logger.info( "response.content:", response.content )
+            _logger.info( "response.content: {}".format(response.content) )
 
             rjson = response.json()
             if ("name" in rjson):

@@ -6,7 +6,7 @@ from openerp import models, api, fields
 import openerp.addons.decimal_precision as dp
 from openerp import _
 
-from .meli_oerp_config import REDIRECT_URI
+# from .meli_oerp_config import REDIRECT_URI
 from ..melisdk.meli import Meli
 
 class MeliUtil(models.AbstractModel):

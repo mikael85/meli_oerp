@@ -21,7 +21,7 @@
 
 from openerp import fields, osv, models
 import logging
-from .meli_oerp_config import *
+# from .meli_oerp_config import *
 
 from ..melisdk.meli import Meli
 #https://api.mercadolibre.com/questions/search?item_id=MLA508223205
