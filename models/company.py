@@ -331,6 +331,7 @@ class res_company(models.Model):
         CLIENT_ID = company.mercadolibre_client_id
         CLIENT_SECRET = company.mercadolibre_secret_key
         meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET)
+        REDIRECT_URI = company.mercadolibre_redirect_uri
 
         url_login_meli = meli.auth_url(redirect_URI=REDIRECT_URI)
         #url_login_oerp = "/meli_login"
@@ -389,6 +390,7 @@ class res_company(models.Model):
         CLIENT_SECRET = company.mercadolibre_secret_key
         ACCESS_TOKEN = company.mercadolibre_access_token
         REFRESH_TOKEN = company.mercadolibre_refresh_token
+        REDIRECT_URI = company.mercadolibre_redirect_uri
 
         meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
 
@@ -557,6 +559,7 @@ class res_company(models.Model):
         CLIENT_SECRET = company.mercadolibre_secret_key
         ACCESS_TOKEN = company.mercadolibre_access_token
         REFRESH_TOKEN = company.mercadolibre_refresh_token
+        REDIRECT_URI = company.mercadolibre_redirect_uri
 
         meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
 
@@ -596,6 +599,7 @@ class res_company(models.Model):
         CLIENT_SECRET = company.mercadolibre_secret_key
         ACCESS_TOKEN = company.mercadolibre_access_token
         REFRESH_TOKEN = company.mercadolibre_refresh_token
+        REDIRECT_URI = company.mercadolibre_redirect_uri
 
         meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
 
