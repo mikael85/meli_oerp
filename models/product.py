@@ -530,9 +530,9 @@ class product_product(models.Model):
             product.write( {'meli_category': mlcatid} )
             product_template.write( {'meli_category': mlcatid} )
 
-        if www_cat_id!=False:
-            #assign
-            product_template.public_categ_ids = [(4,www_cat_id)]
+        # if www_cat_id!=False:
+        #     #assign
+        #     product_template.public_categ_ids = [(4,www_cat_id)]
 
     def _meli_set_images( self, product_template, pictures ):
         company = self.env.user.company_id
@@ -1878,13 +1878,13 @@ class product_product(models.Model):
             _logger.info(attributes)
             product.meli_attributes = str(attributes)
 
-        if product.public_categ_ids:
-            for cat_id in product.public_categ_ids:
-                #_logger.info(cat_id)
-                if (cat_id.mercadolibre_category):
-                    #_logger.info(cat_id.mercadolibre_category)
-                    product.meli_category = cat_id.mercadolibre_category
-                    product_tmpl.meli_category = cat_id.mercadolibre_category
+        # if product.public_categ_ids:
+        #     for cat_id in product.public_categ_ids:
+        #         #_logger.info(cat_id)
+        #         if (cat_id.mercadolibre_category):
+        #             #_logger.info(cat_id.mercadolibre_category)
+        #             product.meli_category = cat_id.mercadolibre_category
+        #             product_tmpl.meli_category = cat_id.mercadolibre_category
 
         if product_tmpl.meli_category:
             product.meli_category=product_tmpl.meli_category
@@ -2052,6 +2052,8 @@ class product_product(models.Model):
                         var_pics = []
                         if (len(body["pictures"])):
                             for pic in body["pictures"]:
+                                _logger.debug('pic')
+                                _logger.debug(pic)
                                 var_pics.append(pic['id'])
                         _logger.info("Variations already posted, must update them only")
                         vars_updated = self.env["product.product"]
