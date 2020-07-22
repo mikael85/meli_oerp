@@ -87,7 +87,7 @@ class product_template_post(models.TransientModel):
                     product.meli_pub = True
                 if (product.meli_pub):
                     res = product.with_context({'force_meli_pub': self.force_meli_pub }).product_template_post()
-                    if 'name' in res:
+                    if res and 'name' in res:
                         return res
                     posted_products+=1
 
@@ -102,8 +102,8 @@ class product_template_update(models.TransientModel):
     _name = "mercadolibre.product.template.update"
     _description = "Wizard de Product Template Update en MercadoLibre"
 
-    type = fields.Selection([('post','Alta'),('put','Editado'),('delete','Borrado')], string='Tipo de operación' );
-    posting_date = fields.Date('Fecha del posting');
+    type = fields.Selection([('post','Alta'),('put','Editado'),('delete','Borrado')], string='Tipo de operación' )
+    posting_date = fields.Date('Fecha del posting')
 	    #'company_id': fields.many2one('res.company',string='Company'),
 	    #'mercadolibre_state': fields.related( 'res.company', 'mercadolibre_state', string="State" )
 
@@ -160,8 +160,8 @@ class product_post(models.TransientModel):
     _name = "mercadolibre.product.post"
     _description = "Wizard de Product Posting en MercadoLibre"
 
-    type = fields.Selection([('post','Alta'),('put','Editado'),('delete','Borrado')], string='Tipo de operación' );
-    posting_date = fields.Date('Fecha del posting');
+    type = fields.Selection([('post','Alta'),('put','Editado'),('delete','Borrado')], string='Tipo de operación' )
+    posting_date = fields.Date('Fecha del posting')
 	    #'company_id': fields.many2one('res.company',string='Company'),
 	    #'mercadolibre_state': fields.related( 'res.company', 'mercadolibre_state', string="State" )
 
