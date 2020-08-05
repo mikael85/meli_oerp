@@ -12,7 +12,8 @@ class ProductImage(models.Model):
     _description = 'Product Image'
 
     name = fields.Char('Name')
-    image = fields.Binary('Image', attachment=True)
+    # image = fields.Binary('Image', attachment=True, store=True)
+    image = fields.Binary('Image', store=True)
     product_tmpl_id = fields.Many2one(
         'product.template', 'Related Product', copy=True)
 

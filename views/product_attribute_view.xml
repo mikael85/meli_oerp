@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="attribute_search_view" model="ir.ui.view">
+            <field name="name">product.attribute.search.view</field>
+            <field name="model">product.attribute</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter name="not_meli_attribute" string="No Es Atributo MeLi" domain="[('meli_default_id_attribute', '=', False)]"/>
+                    <separator/>
+                    <filter name="meli_attribute" string="Es Atributo MeLi" domain="[('meli_default_id_attribute', '!=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+    </data>
+</odoo>

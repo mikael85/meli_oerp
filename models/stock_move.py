@@ -13,6 +13,7 @@ class StockMove(models.Model):
     _inherit = "stock.move"
 
     
+    #TODO: Adaptarlo a la v9: Downport
     def action_assign(self, no_prepare=False):
         company = self.env.user.company_id
         for mov in self:

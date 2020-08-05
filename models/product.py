@@ -263,6 +263,22 @@ class product_template(models.Model):
         for variant in product.product_variant_ids:
             _logger.info("onchange meli_pub variant before::"+str(variant.meli_pub))
             variant.write({'meli_pub':self.meli_pub})
+        #crear las product.image relacionadas
+        images_blob = set(self.env['product.product'].search([('product_tmpl_id','=',product.id)]).mapped('image'))
+        product_image_ids = []
+        for image_blob in images_blob:
+            if not image_blob:
+                continue
+            image = self.env['product.image'].search([('product_tmpl_id','=',product.id), ('image', '=', image_blob)])
+            if not image:
+                _logger.debug('not image, creating!')
+                product_image_ids.append((0, False, {
+                    'name': product.name,
+                    'image': image_blob,
+                    'meli_pub': True,
+                }))
+        _logger.debug(product_image_ids)
+        product.write({'product_image_ids': product_image_ids})
 
 
     def get_title_for_meli(self):
@@ -1021,48 +1037,6 @@ class product_product(models.Model):
             else:
                 product.product_update_stock(product.meli_available_quantity)
 
-        #assign envio/sin envio
-        #si es (Con envio: Sí): asigna el meli_default_stock_product al producto sin envio (Con evio: No)
-        if (b_search_nonfree_ship):
-            ptemp_nfree = False
-            ptpl_same_name = self.env['product.template'].search([('name','=',product_template.name),('id','!=',product_template.id)])
-            #_logger.info("ptpl_same_name:"+product_template.name)
-            #_logger.info(ptpl_same_name)
-            if len(ptpl_same_name):
-                for ptemp in ptpl_same_name:
-                    #check if sin envio
-                    #_logger.info(ptemp.name)
-                    for line in ptemp.attribute_line_ids:
-                        #_logger.info(line.attribute_id.name)
-                        #_logger.info(line.value_ids)
-                        es_con_envio = False
-                        try:
-                            line.attribute_id.name.index('Con env')
-                            es_con_envio = True
-                        except ValueError:
-                            pass
-                            #_logger.info("not con envio")
-                        if (es_con_envio==True):
-                            for att in line.value_ids:
-                                #_logger.info(att.name)
-                                if (att.name=='No'):
-                                    #_logger.info("Founded")
-                                    if (ptemp.meli_pub_principal_variant.id):
-                                        #_logger.info("has meli_pub_principal_variant!")
-                                        ptemp_nfree = ptemp.meli_pub_principal_variant
-                                        if (ptemp_nfree.meli_default_stock_product):
-                                            #_logger.info("has meli_default_stock_product!!!")
-                                            ptemp_nfree = ptemp_nfree.meli_default_stock_product
-                                    else:
-                                        if (ptemp.product_variant_ids):
-                                            if (len(ptemp.product_variant_ids)):
-                                                ptemp_nfree = ptemp.product_variant_ids[0]
-
-            if (ptemp_nfree):
-                #_logger.info("Founded ptemp_nfree, assign to all variants")
-                for variant in product_template.product_variant_ids:
-                    variant.meli_default_stock_product = ptemp_nfree
-
         if ('attributes' in rjson):
             if (len(rjson['attributes']) and 1==1):
                 for att in rjson['attributes']:
@@ -1217,7 +1191,6 @@ class product_product(models.Model):
                             }
                             lineids = bom_l.create(bomline_fields)
                             #_logger.info("bom_list line created")
-                        variant.meli_default_stock_product = pse
                 else:
                     _logger.info("SE no existe?")
 
@@ -2054,7 +2027,8 @@ class product_product(models.Model):
                             for pic in body["pictures"]:
                                 _logger.debug('pic')
                                 _logger.debug(pic)
-                                var_pics.append(pic['id'])
+                                if 'id' in pic:
+                                    var_pics.append(pic['id'])
                         _logger.info("Variations already posted, must update them only")
                         vars_updated = self.env["product.product"]
                         for ix in range(len(productjson["variations"]) ):
@@ -2067,13 +2041,14 @@ class product_product(models.Model):
                                     var_product = pvar
                                     var_product.meli_available_quantity = var_product.virtual_available
                                     vars_updated+=var_product
-                            var = {
-                                "id": str(var_info["id"]),
-                                "price": str(product_tmpl.meli_price),
-                                "available_quantity": var_product.meli_available_quantity,
-                                "picture_ids": var_pics
-                            }
-                            varias["variations"].append(var)
+                                    #Esto tenia 2 puntos menos de indentación
+                                    var = {
+                                        "id": str(var_info["id"]),
+                                        "price": str(product_tmpl.meli_price),
+                                        "available_quantity": var_product.meli_available_quantity,
+                                        "picture_ids": var_pics
+                                    }
+                                    varias["variations"].append(var)
                         #variations = product_tmpl._variations()
                         #varias["variations"] = variations
                         _all_variations = product_tmpl._variations()
@@ -2364,9 +2339,9 @@ class product_product(models.Model):
         if (product.default_code):
             product.set_bom()
 
-        if (product.meli_default_stock_product):
-            _stock = product.meli_default_stock_product.virtual_available
-            if (_stock<0):
+        if (self.env.user.company_id.mercadolibre_warehouse_id):
+            _stock = self.with_context(warehouse=self.env.user.company_id.mercadolibre_warehouse_id.id).browse(product.id).virtual_available
+            if _stock < 0:
                 _stock = 0
 
         if (_stock>=0 and product.virtual_available!=_stock):
@@ -2481,7 +2456,7 @@ class product_product(models.Model):
 
     meli_model = fields.Char(string="Modelo",size=256)
     meli_brand = fields.Char(string="Marca",size=256)
-    meli_default_stock_product = fields.Many2one("product.product","Producto de referencia para stock")
+
     meli_id_variation = fields.Char( string='Variation Id',help='Id de Variante de Meli', size=256)
 
     _defaults = {

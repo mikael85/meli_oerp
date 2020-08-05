@@ -267,6 +267,7 @@ class res_company(models.Model):
                                                 ("not_specified","No especificado")],
                                                 string='Condición',
                                                 help='Condición del producto predeterminado')
+    mercadolibre_warehouse_id = fields.Many2one('stock.warehouse', string="Depósito del Stock")
     mercadolibre_warranty = fields.Char(string='Garantía', size=256)
     mercadolibre_listing_type = fields.Selection([("free","Libre"),
                                                 ("bronze","Bronce"),

@@ -319,7 +319,6 @@
                           <group string="Atributos">
                             <group>
                               <field name="meli_attributes" />
-                              <field name="meli_default_stock_product"/>
                             </group>
                           </group>
                           <separator string="Descripcion del Producto en ML"

@@ -617,8 +617,6 @@ class mercadolibre_orders(models.Model):
                             last_p = p
                             if (p.product_tmpl_id.meli_pub_principal_variant):
                                 product_related_obj = p.product_tmpl_id.meli_pub_principal_variant
-                            if (p.meli_default_stock_product):
-                                product_related_obj = p.meli_default_stock_product
 
                         if (product_related_obj):
                             product_related_obj = product_related_obj
