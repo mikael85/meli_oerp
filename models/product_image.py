@@ -4,6 +4,10 @@ from openerp import models, api, fields, tools
 import openerp.addons.decimal_precision as dp
 from openerp import _
 
+import logging
+_logger = logging.getLogger(__name__)
+
+
 # Implemento imagen como está en website_sale de la v12
 
 
@@ -24,8 +28,7 @@ class ProductImage(models.Model):
     meli_imagen_bytes = fields.Integer(string='Size bytes')
     meli_pub = fields.Boolean(string='Publicar en ML', index=True)
     meli_id = fields.Char(u'ID MELI')
-    product_attribute_id = fields.Many2one(
-        'product.attribute.value', u'Atributo asociado')
+    product_attribute_id = fields.Many2one('product.attribute.value', u'Atributo asociado', domain=lambda self: self._context.get('product_template_id', False) and [('product_ids', 'in', self.env['product.product'].search([('product_tmpl_id', '=', self._context.get('product_template_id'))]).mapped('id'))] or [])
 
 
 ProductImage()

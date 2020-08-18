@@ -88,6 +88,9 @@
                       </group>
 					-->
                     </page>
+                    <page name="ml_images" string="MeLi Imágenes">
+                      <field name="product_image_ids" mode="kanban" nolabel="1" context="{'product_template_id':id}"/>
+                    </page>
                   </notebook>
             </data>
           </field>

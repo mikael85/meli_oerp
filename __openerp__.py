@@ -21,6 +21,7 @@
         'views/company_view.xml',
         'views/posting_view.xml',
         'views/product_attribute_view.xml',
+        'views/product_image.xml',
         'views/product_post.xml',
         'views/product_view.xml',
         'views/category_view.xml',
