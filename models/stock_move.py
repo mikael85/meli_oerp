@@ -9,6 +9,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+# Apagamos StockMove porque da problemas y no lo vamos a usar con MRP
 class StockMove(models.Model):
     _inherit = "stock.move"
 

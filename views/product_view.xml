@@ -2,6 +2,32 @@
 <odoo>
     <data>
 
+        <record model="ir.actions.act_window" id="action_meli_product_variants">
+            <field name="name">Variantes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">product.product</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <record model="ir.ui.view" id="view_meli_product_variants_tree">
+            <field name="name">product.product.tree</field>
+            <field name="model">product.product</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+              <field name="meli_pub"/>
+              <field string="Id Pub" name="meli_id"/>
+              <field string="Id Var" name="meli_id_variation"/>
+              <field string="Variant" name="name"/>
+              <field string="Status" name="meli_status"/>
+              <field string="Sub Status" name="meli_sub_status"/>
+              <field string="ML Title" name="meli_title"/>
+              <field string="ML Price" name="meli_price"/>
+              <field string="ML Qty" name="meli_available_quantity"/>
+              <field string="Link" name="meli_permalink" widget="url"/>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="product_tpl_ml_form_view">
           <field name="name">product.tpl.ml.form.inherit</field>
           <field name="model">product.template</field>
@@ -12,10 +38,11 @@
                   <label for="meli_pub" />
                   <field name="meli_publications" readonly="1" invisible="1"></field>
                   <field name="meli_variants_status" readonly="1" invisible="1"></field>
-              </label>
+            </label>
             <data>
                 <notebook>
-                    <page string="MercadoLibre Plantilla">
+                    <page string="MercadoLibre Plantilla" attrs="{'invisible': [('meli_pub','=',False)]}">
+                      <field name="product_variant_count" invisible="1"/>
                       <group name="ML actions">
                         <div class="oe_button_box" name="button_box_mel" style="width: auto;">
                           <button name='%(action_product_template_post)d' type="action"
@@ -24,6 +51,15 @@
                             confirm="¿Está seguro que quiere publicar/actualizar los datos en ML?"
                             class="oe_stat_button"
                             icon="fa-globe"/>
+                          <button
+                           name="action_meli_product_variants"
+                           type="object"
+                           icon="fa-sitemap"
+                           class="oe_stat_button"
+                           attrs="{'invisible': [('product_variant_count', '&lt;=', 1)]}"
+                           string="Variantes"
+                           modifiers="{'invisible': [['product_variant_count', '&lt;=', 1]]}"
+                          />
                           <button name='%(action_product_template_update)d' type="action"
                             string="Importar"
                             title="Importar datos desde ML"
@@ -37,8 +73,10 @@
                             icon="fa-refresh"/>
                         </div>
                       </group>
-                      <separator string="Variants" colspan="1"/>
-                      <field name="product_variant_ids" options="{'no_create': True}" domain="[('meli_id','!=',None)]">
+                      <!-- <separator string="Variants" colspan="1"/> -->
+                      <!-- Las variantes dan problemas al crear un producto en Odoo 9 TODO: Implementar una acción a tree,form -->
+                      <!-- <field name="product_variant_ids" options="{'no_create': True}" domain="[('meli_id','!=',None)]"> -->
+                      <!-- <field name="product_variant_ids" options="{'no_create': True, 'invisible':[('id','=',False)]}">
                         <tree>
                           <field string="Id Pub" name="meli_id"/>
                           <field string="Id Var" name="meli_id_variation"/>
@@ -50,7 +88,7 @@
                           <field string="ML Qty" name="meli_available_quantity"/>
                           <field string="Link" name="meli_permalink" widget="url"/>
                         </tree>
-                      </field>
+                      </field> -->
                       <separator string="Descripcion del producto en ML" colspan="1"/>
                       <group name="Basic description">
                         <field name="meli_title" />
@@ -88,7 +126,7 @@
                       </group>
 					-->
                     </page>
-                    <page name="ml_images" string="MeLi Imágenes">
+                    <page name="ml_images" string="MeLi Imágenes" attrs="{'invisible': [('meli_pub','=',False)]}">
                       <field name="product_image_ids" mode="kanban" nolabel="1" context="{'product_template_id':id}"/>
                     </page>
                   </notebook>
@@ -211,7 +249,7 @@
 
                 <data>
                     <notebook>
-                        <page string="MercadoLibre">
+                        <page string="MercadoLibre" attrs="{'invisible': [('meli_pub','=',False)]}">
                           <div class="oe_button_box" name="button_box_mel" style="width: auto;">
                             <button name='product_meli_get_product' type="object"
                               string="Importar"
@@ -298,7 +336,7 @@
                           <group string="Detalle de Producto en ML">
               							<group>
                               <field name="meli_title" />
-                              <field name="meli_description_banner_id" on_change="product_on_change_meli_banner( meli_description_banner_id)" />
+                              <field name="meli_description_banner_id"/>
                               <field name="meli_category" options="{'no_create': True}"/>
                               <field name="meli_brand"/>
                               <field name="meli_model"/>
@@ -331,6 +369,20 @@
                     </notebook>
                 </data>
             </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_meli_product_variants_tree">
+          <field name="sequence" eval="1"/>
+          <field name="view_mode">tree</field>
+          <field name="view_id" ref="view_meli_product_variants_tree"/>
+          <field name="act_window_id" ref="action_meli_product_variants"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="action_meli_product_variants_form">
+          <field name="sequence" eval="2"/>
+          <field name="view_mode">form</field>
+          <field name="view_id" ref="product_normal_ml_form_view"/>
+          <field name="act_window_id" ref="action_meli_product_variants"/>
         </record>
 
     </data>
