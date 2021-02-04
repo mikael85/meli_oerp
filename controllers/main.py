@@ -81,13 +81,13 @@ class MercadoLibreLogin(http.Controller):
 class MercadoLibreAuthorize(http.Controller):
     @http.route('/meli_authorize/', auth='public')
     def index(self):
-        return "AUTHORIZE: MercadoLibre for Odoo 8 - Moldeo Interactive"
+        return "AUTHORIZE: MercadoLibre for Odoo 9 - Idea Software"
 
 
 class MercadoLibreLogout(http.Controller):
     @http.route('/meli_logout/', auth='public')
     def index(self):
-        return "LOGOUT: MercadoLibre for Odoo 8 - Moldeo Interactive"
+        return "LOGOUT: MercadoLibre for Odoo 9 - Idea Software"
 
 class Download(http.Controller):
     """

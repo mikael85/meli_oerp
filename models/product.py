@@ -200,6 +200,7 @@ class product_template(models.Model):
         return ret
 
     def _variations(self):
+        # Definir las imagenes aca adentro
         variations = False
         for product_tmpl in self:
             for variant in product_tmpl.product_variant_ids:
@@ -432,15 +433,15 @@ class product_product(models.Model):
         company = self.env.user.company_id
         ml_price_converted = meli_price
         if (product_template.taxes_id):
-            txtotal = 0
+            tax_total = 0
             _logger.info("Adjust taxes")
-            for txid in product_template.taxes_id:
-                if (txid.type_tax_use=="sale"):
-                    txtotal = txtotal + txid.amount
-                    _logger.info(txid.amount)
-            if (txtotal>0):
-                _logger.info("Tx Total:"+str(txtotal)+" to Price:"+str(ml_price_converted))
-                ml_price_converted = meli_price / (1.0 + txtotal*0.01)
+            for tax_id in product_template.taxes_id:
+                if (tax_id.type_tax_use=="sale"):
+                    tax_total = tax_total + tax_id.amount
+                    _logger.info(tax_id.amount)
+            if (tax_total>0):
+                _logger.info("Tx Total:"+str(tax_total)+" to Price:"+str(ml_price_converted))
+                ml_price_converted = meli_price / (1.0 + tax_total*0.01)
                 _logger.info("Price converted:"+str(ml_price_converted))
 
         product_template.write({'lst_price': ml_price_converted})
@@ -643,232 +644,64 @@ class product_product(models.Model):
         except Exception as e:
             _logger.info("_meli_set_images Exception")
             _logger.info(e, exc_info=True)
-
-    @api.multi
-    def product_meli_get_product( self ):
-        company = self.env.user.company_id
-        product_obj = self.env['product.product']
-        uomobj = self.env[uom_model]
-        #pdb.set_trace()
-        product = self
-
-        _logger.info("product_meli_get_product")
-        _logger.info(product.default_code)
-
-        product_template_obj = self.env['product.template']
-        product_template = product_template_obj.browse(product.product_tmpl_id.id)
-
-        CLIENT_ID = company.mercadolibre_client_id
-        CLIENT_SECRET = company.mercadolibre_secret_key
-        ACCESS_TOKEN = company.mercadolibre_access_token
-        REFRESH_TOKEN = company.mercadolibre_refresh_token
-
-        meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
-
-        try:
-            response = meli.get("/items/"+product.meli_id, {'access_token':meli.access_token})
-            #_logger.info(response)
-            rjson = response.json()
-            #_logger.info(rjson)
-        except IOError as e:
-            _logger.info( "I/O error({0}): {1}".format(e.errno, e.strerror) )
-            return {}
-        except:
-            _logger.info( "Rare error" )
-            return {}
-
-
-
-        des = ''
-        desplain = ''
-        vid = ''
-        if 'error' in rjson:
-            return {}
-
-        #if "content" in response:
-        #    _logger.info(response.content)
-        #    _logger.info( "product_meli_get_product > response.content: " + response.content )
-
+    
+    def _get_descriptions_from_response(self, meli, response_json=False):
+        """
+            Retorna una tupla de 2 elementos; el primero es description, el segundo es plain_description
+        """
         #TODO: traer la descripcion: con
         #https://api.mercadolibre.com/items/{ITEM_ID}/description?access_token=$ACCESS_TOKEN
-        if rjson and rjson['descriptions']:
-            response2 = meli.get("/items/"+product.meli_id+"/description", {'access_token':meli.access_token})
-            rjson2 = response2.json()
-            if 'text' in rjson2:
-               des = rjson2['text']
-            if 'plain_text' in rjson2:
-               desplain = rjson2['plain_text']
-            if (len(des)>0):
-                desplain = des
+        description = ''
+        plain_description = ''
+        if response_json and response_json['descriptions']:
+            response = meli.get("/items/"+self.meli_id+"/description", {'access_token':meli.access_token})
+            rjson = response.json()
+            if 'text' in rjson:
+                description = rjson['text']
+            if 'plain_text' in rjson:
+                plain_description = rjson['plain_text']
+            if (len(description)>0):
+                plain_description = description
+        return (description, plain_description)
 
-        #TODO: verificar q es un video
-        if rjson['video_id']:
-            vid = ''
-
-        #TODO: traer las imagenes
-        #TODO:
-        pictures = rjson['pictures']
-        if pictures and len(pictures):
-            product._meli_set_images(product_template, pictures)
-
-        #categories
-        product._meli_set_category( product_template, rjson['category_id'] )
-
-        imagen_id = ''
-        meli_dim_str = ''
-        if ('dimensions' in rjson):
-            if (rjson['dimensions']):
-                meli_dim_str = rjson['dimensions']
-
-        if ('pictures' in rjson):
-            if (len(rjson['pictures'])>0):
-                imagen_id = rjson['pictures'][0]['id']
-
-        try:
-            if (float(rjson['price'])>=0.0):
-                product._meli_set_product_price( product_template, rjson['price'] )
-        except:
-            rjson['price'] = 0.0
-
-        meli_fields = {
-            'name': rjson['title'].encode("utf-8"),
-            #'default_code': rjson['id'],
-            'meli_imagen_id': imagen_id,
-            #'meli_post_required': True,
-            'meli_id': rjson['id'],
-            'meli_permalink': rjson['permalink'],
-            'meli_title': rjson['title'].encode("utf-8"),
-            'meli_description': desplain,
-            'meli_listing_type': rjson['listing_type_id'],
-            'meli_buying_mode':rjson['buying_mode'],
-            'meli_price': str(rjson['price']),
-            'meli_price_fixed': True,
-            'meli_currency': rjson['currency_id'],
-            'meli_condition': rjson['condition'],
-            'meli_available_quantity': rjson['available_quantity'],
-            'meli_warranty': rjson['warranty'],
-            'meli_imagen_link': rjson['thumbnail'],
-            'meli_video': str(vid),
-            'meli_dimensions': meli_dim_str,
-        }
-
-        tmpl_fields = {
-          'name': meli_fields["name"],
-          'description_sale': desplain,
-          #'name': str(rjson['id']),
-          #'lst_price': ml_price_convert,
-          'meli_title': meli_fields["meli_title"],
-          'meli_description': meli_fields["meli_description"],
-          #'meli_category': meli_fields["meli_category"],
-          'meli_listing_type': meli_fields["meli_listing_type"],
-          'meli_buying_mode': meli_fields["meli_buying_mode"],
-          'meli_price': meli_fields["meli_price"],
-          'meli_currency': meli_fields["meli_currency"],
-          'meli_condition': meli_fields["meli_condition"],
-          'meli_warranty': meli_fields["meli_warranty"],
-          'meli_dimensions': meli_fields["meli_dimensions"]
-        }
-
-        if (product.name and not company.mercadolibre_overwrite_variant):
-            del meli_fields['name']
-        if (product_template.name and not company.mercadolibre_overwrite_template):
-            del tmpl_fields['name']
-        if (product_template.description_sale and not company.mercadolibre_overwrite_template):
-            del tmpl_fields['description_sale']
-
-        product.write( meli_fields )
-        product_template.write( tmpl_fields )
-
-        if (rjson['available_quantity']>=0):
-            if (product_template.type not in ['product']):
-                try:
-                    product_template.write( { 'type': 'product' } )
-                except Exception as e:
-                    _logger.info("Set type almacenable ('product') not possible:")
-                    _logger.error(e, exc_info=True)
-                    pass;
-            #TODO: agregar parametro para esto: ml_auto_website_published_if_available  default true
-            if (1==1 and rjson['available_quantity']>0):
-                product_template.website_published = True
-
-        #TODO: agregar parametro para esto: ml_auto_website_unpublished_if_not_available default false
-        if (1==2 and rjson['available_quantity']==0):
-            product_template.website_published = False
-
-        posting_fields = {
-            'posting_date': str(datetime.now()),
-            'meli_id':rjson['id'],
-            'product_id':product.id,
-            'name': 'Post ('+str(product.meli_id)+'): ' + product.meli_title
-        }
-
-        posting = self.env['mercadolibre.posting'].search([('meli_id','=',rjson['id'])])
-        posting_id = posting.id
-
-        if not posting_id:
-            posting = self.env['mercadolibre.posting'].create((posting_fields))
-            posting_id = posting.id
-            if (posting):
-                posting.posting_query_questions()
-        else:
-            posting.write({'product_id':product.id })
-            posting.posting_query_questions()
-
-
-        b_search_nonfree_ship = False
-        if ('shipping' in rjson):
-            att_shipping = {
-                'name': 'Con envío',
-                'create_variant': default_no_create_variant
-            }
-            if ('variations' in rjson):
-                #_logger.info("has variations")
-                pass
-            else:
-                rjson['variations'] = []
-
-            if ('free_methods' in rjson['shipping']):
-                att_shipping['value_name'] = 'Sí'
-                #buscar referencia del template correspondiente
-                b_search_nonfree_ship = True
-            else:
-                att_shipping['value_name'] = 'No'
-
-            rjson['variations'].append({'attribute_combinations': [ att_shipping ]})
-
-        #_logger.info(rjson['variations'])
-        published_att_variants = False
-        if ('variations' in rjson):
+    def _compute_variations_from_response(self, response_json=False):
+        if ('variations' in response_json):
             #recorrer los variations>attribute_combinations y agregarlos como atributos de las variantes
-            #_logger.info(rjson['variations'])
-            vindex = -1
-            for variation in rjson['variations']:
-                vindex = vindex + 1
+            #_logger.info(response_json['variations'])
+            index = -1
+            for variation in response_json['variations']:
+                index = index + 1
                 if ('attribute_combinations' in variation):
                     _attcomb_str = ""
-                    rjson['variations'][vindex]["default_code"] = ""
-                    for attcomb in variation['attribute_combinations']:
-                        namecap = attcomb['name']
-                        if (len(namecap)):
+                    response_json['variations'][index]["default_code"] = ""
+                    for attribute_combination in variation['attribute_combinations']:
+                        name_capitalized = attribute_combination['name']
+                        # Si hay un nombre para la combinación
+                        if (len(name_capitalized)):
+                            # se nombra un atributo?
                             att = {
-                                'name': namecap,
-                                'value_name': attcomb['value_name'],
+                                'name': name_capitalized,
+                                'value_name': attribute_combination['value_name'],
                                 'create_variant': default_create_variant,
                                 'att_id': False
                             }
-                            if ('id' in attcomb):
-                                if (attcomb["id"]):
-                                    if (len(attcomb["id"])):
-                                        att["att_id"] = attcomb["id"]
+                            # Si tiene un id (existe en la base?)
+                            if ('id' in attribute_combination):
+                                if (attribute_combination["id"]):
+                                    if (len(attribute_combination["id"])):
+                                        att["att_id"] = attribute_combination["id"]
                             if (att["att_id"]==False):
-                                namecap = namecap.strip()
-                                namecap = namecap[0].upper()+namecap[1:]
-                                att["name"] = namecap
-                            if ('create_variant' in attcomb):
-                                att['create_variant'] = attcomb['create_variant']
+                                name_capitalized = name_capitalized.strip()
+                                # Pone el nombre con la primera letra en mayusculas
+                                name_capitalized = name_capitalized[0].upper()+name_capitalized[1:]
+                                att["name"] = name_capitalized
+                            # Que carajos hace create_variant ???
+                            if ('create_variant' in attribute_combination):
+                                att['create_variant'] = attribute_combination['create_variant']
                             else:
-                                rjson['variations'][vindex]["default_code"] = rjson['variations'][vindex]["default_code"]+namecap+":"+attcomb['value_name']+";"
-                            #_logger.info(att)
+                                response_json['variations'][index]["default_code"] = response_json['variations'][index]["default_code"]+name_capitalized+":"+attribute_combination['value_name']+";"
+                            _logger.info("valor de att en _get_variations_from_response: ")
+                            _logger.info(att)
                             if (att["att_id"]):
                                 # ML Attribute , we could search first...
                                 #attribute = self.env['product.attribute'].search([('name','=',att['name']),('meli_default_id_attribute','!=',False)])
@@ -882,12 +715,12 @@ class product_product(models.Model):
                                     attribute = self.env['product.attribute'].search([('name','=',att['name'])])
                             else:
                                 #customizado
-                                #_logger.info("Atributo customizado:"+str(namecap))
-                                attribute = self.env['product.attribute'].search([('name','=',namecap),('meli_default_id_attribute','=',False)])
+                                #_logger.info("Atributo customizado:"+str(name_capitalized))
+                                attribute = self.env['product.attribute'].search([('name','=',name_capitalized),('meli_default_id_attribute','=',False)])
                                 _logger.info(attribute)
 
-                                if (attcomb['name']!=namecap):
-                                    attribute_duplicates = self.env['product.attribute'].search([('name','=',attcomb['name']),('meli_default_id_attribute','=',False)])
+                                if (attribute_combination['name']!=name_capitalized):
+                                    attribute_duplicates = self.env['product.attribute'].search([('name','=',attribute_combination['name']),('meli_default_id_attribute','=',False)])
                                     _logger.info("attribute_duplicates:")
                                     _logger.info(attribute_duplicates)
                                     if (len(attribute_duplicates)>=1):
@@ -971,6 +804,192 @@ class product_product(models.Model):
                                             #_logger.info("Adding value id")
                                             attribute_line.value_ids = [(4,attribute_value_id)]
 
+    @api.multi
+    def product_meli_get_product( self ):
+        company = self.env.user.company_id
+        product_obj = self.env['product.product']
+        uomobj = self.env[uom_model]
+        #pdb.set_trace()
+        product = self
+
+        _logger.info("product_meli_get_product")
+        _logger.info(product.default_code)
+
+        product_template_obj = self.env['product.template']
+        product_template = product_template_obj.browse(product.product_tmpl_id.id)
+
+        CLIENT_ID = company.mercadolibre_client_id
+        CLIENT_SECRET = company.mercadolibre_secret_key
+        ACCESS_TOKEN = company.mercadolibre_access_token
+        REFRESH_TOKEN = company.mercadolibre_refresh_token
+
+        meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
+
+        # En esta porcion se recupera el producto desde mercadolibre
+        try:
+            response = meli.get("/items/"+product.meli_id, {'access_token':meli.access_token})
+            _logger.info('meli.get(/items/product.meli_id): ')
+            _logger.info(response)
+            rjson = response.json()
+            _logger.info('meli.get(/items/product.meli_id) response.json(): ')
+            _logger.info(rjson)
+        except IOError as e:
+            _logger.error( "I/O error({0}): {1}".format(e.errno, e.strerror) )
+            return {}
+        except:
+            _logger.error( "Rare error" )
+            return {}
+        # description = ''
+        # plain_description = ''
+        description, plain_description = self._get_descriptions_from_response(meli, rjson)
+        video = ''
+        if 'error' in rjson:
+            return {}
+
+        #if "content" in response:
+        #    _logger.info(response.content)
+        #    _logger.info( "product_meli_get_product > response.content: " + response.content )
+
+        #TODO: verificar q es un video
+        if rjson['video_id']:
+            video = ''
+
+        #TODO: traer las imagenes
+        pictures = rjson['pictures']
+        if pictures and len(pictures):
+            product._meli_set_images(product_template, pictures)
+
+        #TODO: revisar este metodo -> _meli_set_category
+        #categories
+        product._meli_set_category( product_template, rjson['category_id'] )
+
+        imagen_id = ''
+        meli_dim_str = ''
+        if ('dimensions' in rjson):
+            if (rjson['dimensions']):
+                meli_dim_str = rjson['dimensions']
+
+        if ('pictures' in rjson):
+            if (len(rjson['pictures'])>0):
+                imagen_id = rjson['pictures'][0]['id']
+
+        try:
+            if (float(rjson['price'])>=0.0):
+                product._meli_set_product_price( product_template, rjson['price'] )
+        except:
+            rjson['price'] = 0.0
+
+        meli_fields = {
+            'name': rjson['title'].encode("utf-8"),
+            #'default_code': rjson['id'],
+            'meli_imagen_id': imagen_id,
+            #'meli_post_required': True,
+            'meli_id': rjson['id'],
+            'meli_permalink': rjson['permalink'],
+            'meli_title': rjson['title'].encode("utf-8"),
+            'meli_description': plain_description,
+            'meli_listing_type': rjson['listing_type_id'],
+            'meli_buying_mode':rjson['buying_mode'],
+            'meli_price': str(rjson['price']),
+            'meli_price_fixed': True,
+            'meli_currency': rjson['currency_id'],
+            'meli_condition': rjson['condition'],
+            'meli_available_quantity': rjson['available_quantity'],
+            'meli_warranty': rjson['warranty'],
+            'meli_imagen_link': rjson['thumbnail'],
+            'meli_video': str(video),
+            'meli_dimensions': meli_dim_str,
+        }
+
+        tmpl_fields = {
+          'name': meli_fields["name"],
+          'description_sale': plain_description,
+          #'name': str(rjson['id']),
+          #'lst_price': ml_price_convert,
+          'meli_title': meli_fields["meli_title"],
+          'meli_description': meli_fields["meli_description"],
+          #'meli_category': meli_fields["meli_category"],
+          'meli_listing_type': meli_fields["meli_listing_type"],
+          'meli_buying_mode': meli_fields["meli_buying_mode"],
+          'meli_price': meli_fields["meli_price"],
+          'meli_currency': meli_fields["meli_currency"],
+          'meli_condition': meli_fields["meli_condition"],
+          'meli_warranty': meli_fields["meli_warranty"],
+          'meli_dimensions': meli_fields["meli_dimensions"]
+        }
+
+        if (product.name and not company.mercadolibre_overwrite_variant):
+            del meli_fields['name']
+        if (product_template.name and not company.mercadolibre_overwrite_template):
+            del tmpl_fields['name']
+        if (product_template.description_sale and not company.mercadolibre_overwrite_template):
+            del tmpl_fields['description_sale']
+
+        product.write( meli_fields )
+        product_template.write( tmpl_fields )
+
+        if (rjson['available_quantity']>=0):
+            if (product_template.type not in ['product']):
+                try:
+                    product_template.write( { 'type': 'product' } )
+                except Exception as e:
+                    _logger.info("Set type almacenable ('product') not possible:")
+                    _logger.error(e, exc_info=True)
+                    pass
+            #TODO: agregar parametro para esto: ml_auto_website_published_if_available  default true
+            if (1==1 and rjson['available_quantity']>0):
+                product_template.website_published = True
+
+        #TODO: agregar parametro para esto: ml_auto_website_unpublished_if_not_available default false
+        if (1==2 and rjson['available_quantity']==0):
+            product_template.website_published = False
+
+        posting_fields = {
+            'posting_date': str(datetime.now()),
+            'meli_id':rjson['id'],
+            'product_id':product.id,
+            'name': 'Post ('+str(product.meli_id)+'): ' + product.meli_title
+        }
+
+        posting = self.env['mercadolibre.posting'].search([('meli_id','=',rjson['id'])])
+        posting_id = posting.id
+
+        if not posting_id:
+            posting = self.env['mercadolibre.posting'].create((posting_fields))
+            posting_id = posting.id
+            if (posting):
+                posting.posting_query_questions()
+        else:
+            posting.write({'product_id':product.id })
+            posting.posting_query_questions()
+
+
+        b_search_nonfree_ship = False
+        if ('shipping' in rjson):
+            att_shipping = {
+                'name': 'Con envío',
+                'create_variant': default_no_create_variant
+            }
+            if ('variations' in rjson):
+                #_logger.info("has variations")
+                pass
+            else:
+                rjson['variations'] = []
+
+            if ('free_methods' in rjson['shipping']):
+                att_shipping['value_name'] = 'Sí'
+                #buscar referencia del template correspondiente
+                b_search_nonfree_ship = True
+            else:
+                att_shipping['value_name'] = 'No'
+
+            rjson['variations'].append({'attribute_combinations': [ att_shipping ]})
+
+        #_logger.info(rjson['variations'])
+        published_att_variants = False
+
+        self._compute_variations_from_response(response_json=rjson)
+
         #_logger.info("product_uom_id")
         product_uom_id = uomobj.search([('name','=','Unidad(es)')])
         if (product_uom_id.id==False):
@@ -982,7 +1001,7 @@ class product_product(models.Model):
         _product_name = product.name
         _product_meli_id = product.meli_id
 
-        #this write pull the trigger for create_variant_ids()...
+        #this write pull the trigger for create_variant_ids()... checkeado, es correcto
         #_logger.info("rewrite to create variants")
         product_template.write({ 'attribute_line_ids': product_template.attribute_line_ids  })
         #_logger.info("published_att_variants:"+str(published_att_variants))
@@ -990,7 +1009,7 @@ class product_product(models.Model):
             product_template.meli_pub_as_variant = True
 
             #_logger.info("Auto check product.template meli attributes to publish")
-            for line in  product_template.attribute_line_ids:
+            for line in product_template.attribute_line_ids:
                 if (line.id not in product_template.meli_pub_variant_attributes.ids):
                     if (line.attribute_id.create_variant):
                         product_template.meli_pub_variant_attributes = [(4,line.id)]
@@ -1005,14 +1024,14 @@ class product_product(models.Model):
                 #variant.name = rjson['title'].encode("utf-8")
                 has_sku = False
 
-                _v_default_code = ""
+                _variant_default_code = ""
                 for att in att_value_ids(variant):
-                    _v_default_code = _v_default_code + att.attribute_id.name+':'+att.name+';'
-                #_logger.info("_v_default_code: " + _v_default_code)
+                    _variant_default_code = _variant_default_code + att.attribute_id.name+':'+att.name+';'
+                #_logger.info("_variant_default_code: " + _variant_default_code)
                 for variation in rjson['variations']:
                     #_logger.info(variation)
                     #_logger.info("variation[default_code]: " + variation["default_code"])
-                    if (len(variation["default_code"]) and (variation["default_code"] in _v_default_code)):
+                    if (len(variation["default_code"]) and (variation["default_code"] in _variant_default_code)):
                         if ("seller_custom_field" in variation):
                             #_logger.info("has_sku")
                             #_logger.info(variation["seller_custom_field"])
@@ -1020,7 +1039,7 @@ class product_product(models.Model):
                             variant.meli_id_variation = variation["id"]
                             has_sku = True
                         else:
-                            variant.default_code = variant.meli_id+'-'+_v_default_code
+                            variant.default_code = variant.meli_id+'-'+_variant_default_code
                         variant.meli_available_quantity = variation["available_quantity"]
 
                 if (has_sku):
@@ -1114,7 +1133,6 @@ class product_product(models.Model):
                     except Exception as e:
                         _logger.info("Attributes exception:")
                         _logger.info(e, exc_info=True)
-
         return {}
 
     def set_bom(self, has_sku=True):
@@ -1565,6 +1583,11 @@ class product_product(models.Model):
         if (product_tmpl.meli_pub_principal_variant.meli_imagen_id):
             if (len(product_tmpl.meli_pub_principal_variant.meli_imagen_id)):
                var_comb["picture_ids"] = [ product_tmpl.meli_pub_principal_variant.meli_imagen_id]
+        
+        # Aca determinar la imagen segun el att asociado
+        meli_image_ids = self.env['product.image'].search([('product_attribute_id', 'in', product.attribute_value_ids.mapped('id'))]).mapped('meli_imagen_id')
+        if meli_image_ids:
+            var_comb["picture_ids"] = meli_image_ids
 
         #customized attrs:
         customs = []
@@ -1685,52 +1708,11 @@ class product_product(models.Model):
         return res
 
 
-    def _product_post(self):
-        #import pdb;pdb.set_trace();
-        _logger.info('[DEBUG] product_post')
-        _logger.info(self.env.context)
+    def _set_product_template_company_defaults(self):
         self.ensure_one()
-
-        product_obj = self.env['product.product']
-        product_tpl_obj = self.env['product.template']
-        product = self
         product_tmpl = self.product_tmpl_id
+        product = self
         company = self.env.user.company_id
-        warningobj = self.env['warning']
-
-        REDIRECT_URI = company.mercadolibre_redirect_uri
-        CLIENT_ID = company.mercadolibre_client_id
-        CLIENT_SECRET = company.mercadolibre_secret_key
-        ACCESS_TOKEN = company.mercadolibre_access_token
-        REFRESH_TOKEN = company.mercadolibre_refresh_token
-
-
-        meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
-
-        if ACCESS_TOKEN=='':
-            meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET)
-            url_login_meli = meli.auth_url(redirect_URI=REDIRECT_URI)
-            return {
-                "type": "ir.actions.act_url",
-                "url": url_login_meli,
-                "target": "new",
-            }
-        #return {}
-        #description_sale =  product_tmpl.description_sale
-        # translation = self.env['ir.translation'].search([('res_id','=',product_tmpl.id),
-        #                                                 ('name','=','product.template,description_sale'),
-        #                                                 ('lang','=','es_AR')])
-        # if translation:
-        #     #_logger.info("translation")
-        #     #_logger.info(translation.value)
-        #     description_sale = translation.value
-
-        productjson = False
-        if (product.meli_id):
-            response = meli.get("/items/%s" % product.meli_id, {'access_token':meli.access_token})
-            if (response):
-                productjson = response.json()
-
         # Checkea de los valores por default de la compañía
         # Tipo de lista (oro, plata, bronce, etc)
         if company.mercadolibre_listing_type and product_tmpl.meli_listing_type==False:
@@ -1761,6 +1743,11 @@ class product_product(models.Model):
         if product_tmpl.meli_description==False or ( product_tmpl.meli_description and len(product_tmpl.meli_description)==0):
             product_tmpl.meli_description = product_tmpl.description_sale
 
+    def _set_product_meli_fields(self):
+        self.ensure_one()
+        product_tmpl = self.product_tmpl_id
+        product = self
+        warningobj = self.env['warning']
         if product.meli_title==False or len(product.meli_title)==0:
             # _logger.info( 'Assigning title: product.meli_title: %s name: %s' % (product.meli_title, product.name) )
             product.meli_title = product_tmpl.meli_title
@@ -1772,9 +1759,6 @@ class product_product(models.Model):
                             values+= " "+value.name
                 if (not product_tmpl.meli_pub_as_variant):
                     product.meli_title = string.replace(product.meli_title,product.name,product.name+" "+values)
-
-
-
 
         force_template_title = False
         if (product_tmpl.meli_title and force_template_title):
@@ -1829,14 +1813,64 @@ class product_product(models.Model):
         if (product_tmpl.meli_model):
             product.meli_model = product_tmpl.meli_model
 
+    def _get_attributes(self):
+        self.ensure_one()
+        product = self
+        product_tmpl = self.product_tmpl_id
         attributes = []
+
+        return attributes
+
+    def _product_post(self):
+        #import pdb;pdb.set_trace();
+        _logger.info('[DEBUG] product_post')
+        _logger.info(self.env.context)
+        self.ensure_one()
+
+        product = self
+        product_tmpl = self.product_tmpl_id
+        company = self.env.user.company_id
+        warningobj = self.env['warning']
+
+        REDIRECT_URI = company.mercadolibre_redirect_uri
+        CLIENT_ID = company.mercadolibre_client_id
+        CLIENT_SECRET = company.mercadolibre_secret_key
+        ACCESS_TOKEN = company.mercadolibre_access_token
+        REFRESH_TOKEN = company.mercadolibre_refresh_token
+
+        meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
+
+        if ACCESS_TOKEN=='':
+            meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET)
+            url_login_meli = meli.auth_url(redirect_URI=REDIRECT_URI)
+            return {
+                "type": "ir.actions.act_url",
+                "url": url_login_meli,
+                "target": "new",
+            }
+
+        productjson = False
+        if (product.meli_id):
+            response = meli.get("/items/%s" % product.meli_id, {'access_token':meli.access_token})
+            if (response):
+                productjson = response.json()
+
+        product._set_product_template_company_defaults()
+
+        product._set_product_meli_fields()
+
+        #Hacer lo mismo con los atributos
+
+        # attributes = []
+        
+        attributes = product._get_attributes()
         variations_candidates = False
         if product_tmpl.attribute_line_ids:
             _logger.info('product_tmpl.attribute_line_ids:')
-            _logger.info(product_tmpl.attribute_line_ids)
+            _logger.info(product_tmpl.attribute_line_ids) ## Talle y Color
             for at_line_id in product_tmpl.attribute_line_ids:
-                atname = at_line_id.attribute_id.name
-                #atributos, no variantes! solo con un valor...
+                atname = at_line_id.attribute_id.name ## Primero Talle despues Color
+                #atributos, no variantes! solo con un valor... #No es el caso de casi ningun producto
                 if (len(at_line_id.value_ids)==1):
                     atval = at_line_id.value_ids.name
                     _logger.info('atname: atval')
@@ -1855,6 +1889,7 @@ class product_product(models.Model):
                         }
                         attributes.append(attribute)
                 elif (len(at_line_id.value_ids)>1):
+                    # Entra acá porque casi siempre hay mas de un valor por atributo
                     variations_candidates = True
 
             _logger.info('attributes:')
@@ -2038,11 +2073,13 @@ class product_product(models.Model):
                 body["seller_custom_field"] = product.default_code
 
 
+        # Si está chequeado publicar como variantes:
         if (product_tmpl.meli_pub_as_variant):
             if (product_tmpl.meli_pub_principal_variant.id):
                 if (product_tmpl.meli_pub_principal_variant.id == product.id):
                     #esta es la variante principal, si aun el producto no se publico
                     #preparamos las variantes
+                    # Si hay productjson, es porque estamos actualizando
 
                     if ( productjson and len(productjson["variations"]) ):
                         #ya hay variantes publicadas en ML
@@ -2083,7 +2120,8 @@ class product_product(models.Model):
                         #variations = product_tmpl._variations()
                         #varias["variations"] = variations
                         _all_variations = product_tmpl._variations()
-                        _updated_ids = vars_updated.mapped('id')
+                        # _updated_ids = vars_updated.mapped('id')
+                        _updated_ids = [x.id for x in vars_updated]
                         _logger.info(_updated_ids)
                         _new_candidates = product_tmpl.product_variant_ids.filtered(lambda pv: pv.id not in _updated_ids)
                         _logger.info(_new_candidates)

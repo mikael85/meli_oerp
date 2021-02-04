@@ -100,9 +100,9 @@ class mercadolibre_posting(models.Model):
             #
             meli = Meli(client_id=CLIENT_ID,client_secret=CLIENT_SECRET, access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN )
             if (posting.meli_id):
-                pass;
+                pass
             else:
-                continue;
+                continue
             response = meli.get("/items/"+posting.meli_id, {'access_token':meli.access_token})
             product_json = response.json()
             #_logger.info( product_json )
@@ -162,15 +162,15 @@ class mercadolibre_posting(models.Model):
 
         return {}
 
-    posting_date = fields.Date('Fecha del posting');
-    name = fields.Char('Name');
-    meli_id = fields.Char('Id del item asignado por Meli', size=256);
-    product_id = fields.Many2one('product.product','product_id');
-    meli_status = fields.Char( string="Estado del producto en MLA", size=256 );
-    meli_permalink = fields.Char( string="Permalink en MercadoLibre", size=512 );
-    meli_price = fields.Char(string='Precio de venta', size=128);
-    posting_questions = fields.One2many( 'mercadolibre.questions','posting_id','Questions' );
-    posting_update = fields.Char( compute=_posting_update, string="Posting Update", store=False );
-    meli_seller_custom_field = fields.Char('Sellect Custom Field or SKU',size=256);
+    posting_date = fields.Date('Fecha del posting')
+    name = fields.Char('Name')
+    meli_id = fields.Char('Id del item asignado por Meli', size=256)
+    product_id = fields.Many2one('product.product','product_id')
+    meli_status = fields.Char( string="Estado del producto en MLA", size=256 )
+    meli_permalink = fields.Char( string="Permalink en MercadoLibre", size=512 )
+    meli_price = fields.Char(string='Precio de venta', size=128)
+    posting_questions = fields.One2many( 'mercadolibre.questions','posting_id','Questions' )
+    posting_update = fields.Char( compute=_posting_update, string="Posting Update", store=False )
+    meli_seller_custom_field = fields.Char('Sellect Custom Field or SKU',size=256)
 
 mercadolibre_posting()
