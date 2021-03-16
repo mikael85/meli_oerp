@@ -47,7 +47,16 @@ Utilizar como <b>redirect_uri</b> el valor de: https://[dominio del server]/meli
 <h4>4. Pueden ver el video en el link siguiente</h4>
 <a href="https://www.moldeointeractive.com.ar/shop/product/instalacion-modulo-odoo-mercadolibre-15">Video + Info</a>
 
+<h2>Configuración para Apppedido</h2>
+<h4>1. Completar los datos de logueo</h4>
+<h4>2. Configurar el id de la categoría a importar: <b>MLA1430</b></h4>
+<h4>    2.a Marcar Recursive Import</h4>
+<h4>3. Establecer <i>Create product attributes</i> a <b>manual</b></h4>
+<h4>4. En Ventas/Configuración/Atributos mapear los atributos de Odoo con los de MercadoLibre</h4>
+<h4>5. Al marcar un producto para ser exportado a MercadoLibre editar las imágenes y asociarlas a un atributo según corresponda.</h4>
 
 <h2>Authors</h2>
 <h4>Original Author and Development Lead</h4>
 <h5>Fabricio Costa (fabricio.costa(at)moldeointeractive.com.ar)</h5>
+<h4>DownPort a V9</h4>
+<h5>Micael Gomez</h5>
